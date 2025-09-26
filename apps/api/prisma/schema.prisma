@@ -1,0 +1,119 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+model User {
+  id             String         @id @default(cuid())
+  email          String         @unique
+  password       String
+  role           Role           @default(ADMIN)
+  profile        Profile?
+  refreshTokens  RefreshToken[]
+  assets         Asset[]
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+}
+
+model Profile {
+  id            String        @id @default(cuid())
+  userId        String        @unique
+  user          User          @relation(fields: [userId], references: [id])
+  name          String
+  title         String
+  bio           String
+  avatar        String?
+  resume        String?
+  socialLinks   Json
+  skills        Skill[]
+  projects      Project[]
+  experiences   Experience[]
+  testimonials  Testimonial[]
+  settings3D    Settings3D?
+}
+
+model Skill {
+  id         String   @id @default(cuid())
+  profileId  String
+  profile    Profile  @relation(fields: [profileId], references: [id])
+  name       String
+  level      Int?
+  order      Int      @default(0)
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  title       String
+  description String
+  thumbnail   String
+  images      String[]
+  techStack   String[]
+  liveUrl     String?
+  githubUrl   String?
+  featured    Boolean  @default(false)
+  order       Int      @default(0)
+  model3D     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Experience {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  company     String
+  role        String
+  startDate   DateTime
+  endDate     DateTime?
+  description String
+  order       Int      @default(0)
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  author      String
+  content     String
+  rating      Int?
+  order       Int      @default(0)
+}
+
+model Settings3D {
+  id              String   @id @default(cuid())
+  profileId       String   @unique
+  profile         Profile  @relation(fields: [profileId], references: [id])
+  heroEnabled     Boolean  @default(true)
+  particlesCount  Int      @default(1000)
+  theme           Json?
+}
+
+model Asset {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  url       String
+  type      String
+  size      Int
+  createdAt DateTime @default(now())
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  token     String   @unique
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
